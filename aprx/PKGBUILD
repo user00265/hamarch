@@ -1,0 +1,29 @@
+pkgname="aprx"
+pkgdesc="A highly configurable APRS I-gate/Digipeater Daemon"
+pkgver="2.9.1"
+pkgrel=1
+url="https://thelifeofkenneth.com/aprx/"
+arch=('x86_64')
+license=('BSD')
+depends=('openssl')
+source=("https://thelifeofkenneth.com/aprx/release/${pkgname}-${pkgver}.tar.gz" "${pkgname}.service")
+sha256sums=('a28bafbb882f36e154eed19c8ed44a13dd1aac34432d2497e61479af369b61ed'
+            'c7a9aed6faac834269eb8d1d2a17ad7e4d0244a095347f568d9e1ca11abc9d81')
+
+build(){
+	cd "${pkgname}-${pkgver}"
+
+	CFLAGS+=" -fcommon"
+
+	./configure --prefix=/usr --sbindir=/usr/bin --sysconfdir=/etc --localstatedir=/var --mandir=/usr/share/man \
+	--with-pthread
+}
+
+package(){
+	install -vDm644 -t "${pkgdir}/usr/lib/systemd/system" "${pkgname}.service"
+
+	cd "${pkgname}-${pkgver}"
+
+	make DESTDIR="${pkgdir}/" logrotate.aprx install
+	install -v -D -m 644 logrotate.aprx "${pkgdir}/etc/logrotate.d/aprx.conf"
+}
